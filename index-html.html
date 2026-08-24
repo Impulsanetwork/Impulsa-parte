@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Impulsa · Parte de Trabajo</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
+<style>
+  :root {
+    --header: #212121;
+    --accent: #D36846;
+    --row-light: #F2F4E9;
+    --row-dark: #E5E8D5;
+    --green: #3C8C3C;
+    --amber: #D8A24A;
+    --amber-bg: #fbf4e6;
+    --border: #d1d5db;
+    --text: #1a1a1a;
+    --muted: #666;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f3f4f6; color: var(--text); }
+
+  /* ── FORM STYLES ── */
+  .form-wrap { max-width: 540px; margin: 0 auto; padding: 12px; }
+  .form-header { background: var(--header); color: #fff; padding: 20px; border-radius: 14px 14px 0 0; }
+  .form-header-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; opacity: .65; margin-bottom: 4px; }
+  .form-header h1 { font-size: 22px; font-weight: 700; margin: 0; }
+  .form-header p { font-size: 12px; opacity: .65; margin-top: 3px; }
+  .accent-bar { height: 4px; background: var(--accent); }
+  .form-body { background: #fff; padding: 24px 20px; border-radius: 0 0 14px 14px; border: 1px solid var(--border); border-top: none; }
+
+  .section-label { font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: 1.2px; text-transform: uppercase; padding-bottom: 6px; border-bottom: 2px solid var(--accent); margin: 24px 0 16px; }
+  .section-label:first-child { margin-top: 0; }
+
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-weight: 600; font-size: 13px; color: var(--text); margin-bottom: 5px; }
+  .field label .req { color: var(--accent); }
+  .field input, .field textarea, .field select {
+    width: 100%; padding: 11px 13px; border: 1.5px solid var(--border); border-radius: 8px;
+    font-size: 15px; font-family: inherit; background: #fff; color: var(--text);
+    -webkit-appearance: none; appearance: none;
+  }
+  .field textarea { min-height: 110px; resize: vertical; line-height: 1.5; }
+  .field input:focus, .field textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(211,104,70,.15); }
+  .row { display: flex; gap: 12px; }
+  .row .field { flex: 1; }
+
+  .error-box { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #991b1b; }
+  .error-box strong { color: #b91c1c; }
+
+  /* Photos */
+  .photo-btn { width: 100%; padding: 16px; border: 2px dashed var(--border); border-radius: 10px; background: #fafafa; color: var(--muted); font-size: 15px; cursor: pointer; text-align: center; }
+  .photo-btn:active { background: #f0f0f0; }
+  .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .photo-card { position: relative; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+  .photo-card img { width: 100%; height: 120px; object-fit: cover; display: block; }
+  .photo-card input { width: 100%; padding: 6px 8px; font-size: 12px; border: none; border-top: 1px solid var(--border); font-family: inherit; }
+  .photo-card .remove { position: absolute; top: 4px; right: 4px; width: 26px; height: 26px; border-radius: 50%; background: rgba(0,0,0,.6); color: #fff; border: none; font-size: 16px; cursor: pointer; line-height: 26px; text-align: center; }
+
+  /* Signature */
+  .sig-container { position: relative; border: 2px solid var(--border); border-radius: 8px; overflow: hidden; background: #fafafa; margin-bottom: 4px; touch-action: none; }
+  .sig-container.signed { border-color: var(--green); }
+  .sig-canvas { width: 100%; height: 130px; display: block; cursor: crosshair; touch-action: none; }
+  .sig-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #bbb; font-size: 13px; pointer-events: none; user-select: none; }
+  .sig-clear { font-size: 12px; color: var(--accent); background: none; border: none; cursor: pointer; padding: 4px 0; }
+
+  /* Buttons */
+  .actions { display: flex; gap: 12px; margin-top: 28px; }
+  .btn-primary { flex: 1; padding: 15px; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; letter-spacing: .3px; }
+  .btn-primary:active { opacity: .85; }
+  .btn-primary:disabled { opacity: .5; cursor: wait; }
+  .btn-secondary { padding: 15px 18px; background: #f3f4f6; color: var(--muted); border: 1px solid var(--border); border-radius: 10px; font-size: 14px; cursor: pointer; }
+
+  /* ── REPORT STYLES (for PDF) ── */
+  .report { width: 210mm; font-family: 'Segoe UI', system-ui, sans-serif; color: var(--text); font-size: 11pt; line-height: 1.45; }
+  .report * { box-sizing: border-box; }
+  .rpt-header { background: var(--header); color: #fff; padding: 14px 22px; display: flex; justify-content: space-between; align-items: center; }
+  .rpt-header-title { font-weight: 700; font-size: 13pt; letter-spacing: .5px; }
+  .rpt-header-sub { font-size: 9pt; opacity: .75; margin-top: 2px; }
+  .rpt-accent { height: 4px; background: var(--accent); }
+  .rpt-body { padding: 22px 28px; }
+  .rpt-eyebrow { font-size: 9pt; color: var(--accent); font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 5px; }
+  .rpt-title { font-size: 22pt; font-weight: 700; color: var(--text); margin: 0 0 10px; border-left: 4px solid var(--accent); padding-left: 12px; }
+  .rpt-meta { display: flex; justify-content: space-between; font-size: 10pt; color: var(--muted); border-top: 1px solid var(--border); padding-top: 8px; margin-bottom: 22px; }
+  .rpt-h2 { font-size: 14pt; font-weight: 700; margin: 22px 0 10px; color: var(--text); }
+  .rpt-h2-bar { border-top: 3px solid var(--accent); }
+
+  .rpt-table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+  .rpt-table td { padding: 7px 12px; font-size: 10pt; vertical-align: top; }
+  .rpt-table .lbl { background: var(--header); color: #fff; font-weight: 600; width: 160px; font-size: 10pt; }
+  .rpt-table tr:nth-child(odd) td:not(.lbl) { background: var(--row-light); }
+  .rpt-table tr:nth-child(even) td:not(.lbl) { background: var(--row-dark); }
+
+  .rpt-task-header { background: var(--header); color: #fff; padding: 8px 14px; font-size: 10pt; font-weight: 700; display: flex; justify-content: space-between; }
+  .rpt-task-header .chip { background: var(--accent); color: #fff; padding: 3px 10px; border-radius: 4px; font-size: 9pt; font-weight: 700; }
+  .rpt-task-row { display: flex; justify-content: space-between; padding: 7px 14px; font-size: 10pt; border-bottom: 1px solid #e5e7eb; }
+  .rpt-task-row:nth-child(odd) { background: var(--row-light); }
+  .rpt-task-row:nth-child(even) { background: var(--row-dark); }
+  .rpt-done { color: var(--green); font-weight: 700; font-size: 10pt; }
+
+  .rpt-desc { background: var(--row-light); padding: 14px 18px; border-radius: 4px; margin-bottom: 18px; font-size: 10.5pt; line-height: 1.6; border-left: 3px solid var(--accent); white-space: pre-wrap; }
+
+  .rpt-photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .rpt-photo-card { border: 1px solid var(--border); border-radius: 4px; overflow: hidden; break-inside: avoid; }
+  .rpt-photo-card img { width: 100%; height: 180px; object-fit: contain; background: #f5f5f5; display: block; border-left: 4px solid var(--accent); }
+  .rpt-photo-caption { padding: 6px 10px; font-size: 9pt; color: var(--muted); font-style: italic; text-align: center; background: var(--row-light); }
+
+  .rpt-sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 18px; }
+  .rpt-sig-box { text-align: center; }
+  .rpt-sig-img { height: 70px; border: 1px solid var(--border); border-radius: 4px; background: #fafafa; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; overflow: hidden; }
+  .rpt-sig-img img { max-height: 60px; max-width: 90%; }
+  .rpt-sig-name { font-size: 10pt; font-weight: 600; }
+  .rpt-sig-role { font-size: 9pt; color: var(--muted); }
+
+  .rpt-footer { border-top: 1px solid var(--border); padding-top: 10px; font-size: 8.5pt; color: var(--muted); text-align: center; margin-top: 30px; }
+
+  .rpt-obs { padding: 10px 16px; border-radius: 4px; margin-bottom: 8px; font-size: 10pt; }
+  .rpt-obs-amber { background: var(--amber-bg); border-left: 4px solid var(--amber); }
+  .rpt-obs-green { background: #f0fdf4; border-left: 4px solid var(--green); }
+  .rpt-obs strong { font-size: 10pt; }
+
+  /* Loading overlay */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 999; justify-content: center; align-items: center; }
+  .overlay.active { display: flex; }
+  .overlay-box { background: #fff; padding: 28px 36px; border-radius: 14px; text-align: center; }
+  .overlay-box .spinner { width: 36px; height: 36px; border: 3.5px solid #e5e7eb; border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 14px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Success */
+  .success-box { background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px; padding: 18px 20px; margin-bottom: 20px; text-align: center; display: none; }
+  .success-box.active { display: block; }
+  .success-box .check { font-size: 32px; margin-bottom: 6px; }
+  .success-box p { font-size: 14px; color: #166534; }
+</style>
+</head>
+<body>
+
+<!-- ═══════ FORM VIEW ═══════ -->
+<div id="formView" class="form-wrap">
+  <div class="form-header">
+    <div class="form-header-eyebrow">IMPULSA NETWORK</div>
+    <h1>Parte de Trabajo</h1>
+    <p>Formulario de campo para técnicos</p>
+  </div>
+  <div class="accent-bar"></div>
+  <div class="form-body">
+
+    <div id="successMsg" class="success-box">
+      <div class="check">✅</div>
+      <p><strong>PDF descargado correctamente.</strong><br>Puedes rellenar otro parte o cerrar esta página.</p>
+    </div>
+
+    <div id="errorBox" class="error-box" style="display:none"></div>
+
+    <!-- Service Data -->
+    <div class="section-label" style="margin-top:0">Datos del servicio</div>
+    <div class="field"><label>Nº de Orden (SO) <span class="req">*</span></label><input id="soNumber" placeholder="SO######"></div>
+    <div class="field"><label>Cliente / Marca <span class="req">*</span></label><input id="client" placeholder="Ej: Armani Exchange"></div>
+    <div class="field"><label>Tienda</label><input id="store" placeholder="Ej: London · Regent St."></div>
+    <div class="field"><label>Dirección <span class="req">*</span></label><input id="address" placeholder="Dirección completa de la tienda"></div>
+    <div class="row">
+      <div class="field"><label>Fecha</label><input type="date" id="dateField"></div>
+      <div class="field">
+        <label>Tipo de servicio</label>
+        <select id="serviceType">
+          <option value="Corrective">Correctivo</option>
+          <option value="Preventive">Preventivo</option>
+          <option value="Inspection">Inspección</option>
+          <option value="Emergency">Emergencia</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Hora inicio</label><input type="time" id="startTime"></div>
+      <div class="field"><label>Hora fin</label><input type="time" id="endTime"></div>
+    </div>
+
+    <!-- Work Description -->
+    <div class="section-label">Descripción de los trabajos</div>
+    <div class="field"><label>Trabajos realizados <span class="req">*</span></label><textarea id="description" placeholder="Describe los trabajos realizados, hallazgos, materiales empleados, estado final del equipo…"></textarea></div>
+
+    <!-- Tasks -->
+    <div class="section-label">Tareas realizadas (opcional)</div>
+    <div id="taskList"></div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <input id="newTask" placeholder="Añadir tarea…" style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;">
+      <button onclick="addTask()" style="padding:10px 16px;background:var(--header);color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">+</button>
+    </div>
+
+    <!-- Personnel -->
+    <div class="section-label">Personal</div>
+    <div class="field"><label>Nombre del técnico <span class="req">*</span></label><input id="techName" placeholder="Nombre completo"></div>
+    <div class="field"><label>Encargado/a de tienda</label><input id="managerName" placeholder="Nombre completo"></div>
+
+    <!-- Photos -->
+    <div class="section-label">Fotos</div>
+    <div class="field">
+      <input type="file" id="photoInput" accept="image/*" multiple capture="environment" style="display:none" onchange="handlePhotos(this)">
+      <button class="photo-btn" onclick="document.getElementById('photoInput').click()">📷 Tomar foto o seleccionar de galería</button>
+      <div id="photoGrid" class="photo-grid"></div>
+    </div>
+
+    <!-- Signatures -->
+    <div class="section-label">Firmas</div>
+    <div class="field">
+      <label>Firma del técnico</label>
+      <div class="sig-container" id="sigTechWrap">
+        <canvas class="sig-canvas" id="sigTech"></canvas>
+        <div class="sig-placeholder" id="sigTechPh">Firmar aquí</div>
+      </div>
+      <button class="sig-clear" onclick="clearSig('Tech')">Borrar firma</button>
+    </div>
+    <div class="field">
+      <label>Firma del encargado/a</label>
+      <div class="sig-container" id="sigMgrWrap">
+        <canvas class="sig-canvas" id="sigMgr"></canvas>
+        <div class="sig-placeholder" id="sigMgrPh">Firmar aquí</div>
+      </div>
+      <button class="sig-clear" onclick="clearSig('Mgr')">Borrar firma</button>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn-primary" id="generateBtn" onclick="generatePDF()">Generar PDF →</button>
+      <button class="btn-secondary" onclick="resetForm()">Limpiar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ HIDDEN REPORT TEMPLATE ═══════ -->
+<div id="reportContainer" style="position:absolute;left:-9999px;top:0;">
+  <div class="report" id="report"></div>
+</div>
+
+<!-- Loading overlay -->
+<div class="overlay" id="loadingOverlay">
+  <div class="overlay-box">
+    <div class="spinner"></div>
+    <div style="font-size:15px;font-weight:600;color:var(--text);">Generando PDF…</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px;">Esto puede tardar unos segundos</div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let photos = [];
+let tasks = [];
+const sigState = { Tech: { drawing: false, hasStrokes: false }, Mgr: { drawing: false, hasStrokes: false } };
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('dateField').value = new Date().toISOString().split('T')[0];
+  initSig('Tech');
+  initSig('Mgr');
+  // Enter key on task input
+  document.getElementById('newTask').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+});
+
+// ── SIGNATURE ──
+function initSig(id) {
+  const canvas = document.getElementById('sig' + id);
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * 2;
+  canvas.height = rect.height * 2;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(2, 2);
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  const getPos = (e) => {
+    const r = canvas.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return { x: t.clientX - r.left, y: t.clientY - r.top };
+  };
+
+  const start = (e) => { e.preventDefault(); const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); sigState[id].drawing = true; sigState[id].hasStrokes = true; document.getElementById('sig' + id + 'Ph').style.display = 'none'; document.getElementById('sig' + id + 'Wrap').classList.add('signed'); };
+  const move = (e) => { if (!sigState[id].drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
+  const end = (e) => { if (sigState[id].drawing) { e.preventDefault(); sigState[id].drawing = false; } };
+
+  canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move);
+  canvas.addEventListener('mouseup', end); canvas.addEventListener('mouseleave', end);
+  canvas.addEventListener('touchstart', start, { passive: false });
+  canvas.addEventListener('touchmove', move, { passive: false });
+  canvas.addEventListener('touchend', end, { passive: false });
+}
+
+function clearSig(id) {
+  const canvas = document.getElementById('sig' + id);
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.getBoundingClientRect();
+  ctx.clearRect(0, 0, rect.width, rect.height);
+  sigState[id].hasStrokes = false;
+  document.getElementById('sig' + id + 'Ph').style.display = '';
+  document.getElementById('sig' + id + 'Wrap').classList.remove('signed');
+}
+
+function getSigData(id) {
+  if (!sigState[id].hasStrokes) return null;
+  return document.getElementById('sig' + id).toDataURL('image/png');
+}
+
+// ── PHOTOS ──
+function handlePhotos(input) {
+  Array.from(input.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      // Compress image
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX = 1200;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) { const r = Math.min(MAX / w, MAX / h); w *= r; h *= r; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const compressed = canvas.toDataURL('image/jpeg', 0.75);
+        photos.push({ data: compressed, caption: '' });
+        renderPhotos();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function renderPhotos() {
+  const grid = document.getElementById('photoGrid');
+  grid.innerHTML = photos.map((p, i) => `
+    <div class="photo-card">
+      <img src="${p.data}" alt="">
+      <input type="text" placeholder="Pie de foto…" value="${p.caption}" onchange="photos[${i}].caption=this.value">
+      <button class="remove" onclick="photos.splice(${i},1);renderPhotos()">×</button>
+    </div>
+  `).join('');
+}
+
+// ── TASKS ──
+function addTask() {
+  const input = document.getElementById('newTask');
+  const val = input.value.trim();
+  if (!val) return;
+  tasks.push(val);
+  input.value = '';
+  renderTasks();
+}
+
+function renderTasks() {
+  const list = document.getElementById('taskList');
+  list.innerHTML = tasks.map((t, i) => `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px 12px;background:var(--row-light);border-radius:6px;">
+      <span style="flex:1;font-size:14px;">▸ ${t}</span>
+      <button onclick="tasks.splice(${i},1);renderTasks()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:16px;font-weight:700;">×</button>
+    </div>
+  `).join('');
+}
+
+// ── VALIDATE ──
+function validate() {
+  const required = [
+    ['soNumber', 'Nº de Orden'],
+    ['client', 'Cliente / Marca'],
+    ['address', 'Dirección'],
+    ['description', 'Descripción de trabajos'],
+    ['techName', 'Nombre del técnico'],
+  ];
+  const missing = required.filter(([id]) => !document.getElementById(id).value.trim()).map(([, l]) => l);
+  const box = document.getElementById('errorBox');
+  if (missing.length > 0) {
+    box.innerHTML = '<strong>Campos obligatorios: </strong>' + missing.join(', ');
+    box.style.display = 'block';
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return false;
+  }
+  box.style.display = 'none';
+  return true;
+}
+
+// ── GET FIELD VALUES ──
+function getVal(id) { return document.getElementById(id).value.trim(); }
+
+// ── BUILD REPORT HTML ──
+function buildReport() {
+  const so = getVal('soNumber');
+  const client = getVal('client');
+  const store = getVal('store') || '—';
+  const address = getVal('address');
+  const date = getVal('dateField') || new Date().toISOString().split('T')[0];
+  const start = getVal('startTime') || '—';
+  const end = getVal('endTime') || '—';
+  const svcType = document.getElementById('serviceType').value;
+  const desc = getVal('description');
+  const tech = getVal('techName');
+  const mgr = getVal('managerName') || '—';
+  const techSig = getSigData('Tech');
+  const mgrSig = getSigData('Mgr');
+
+  // Format date nicely
+  const dp = date.split('-');
+  const dateNice = dp.length === 3 ? `${dp[2]}/${dp[1]}/${dp[0]}` : date;
+
+  let secNum = 1;
+
+  let html = `
+    <div class="rpt-header">
+      <div>
+        <div class="rpt-header-title">IMPULSA NETWORK SL</div>
+        <div class="rpt-header-sub">Corrective Service Report · ${client} ${store !== '—' ? store : ''} · Ref. ${so}</div>
+      </div>
+    </div>
+    <div class="rpt-accent"></div>
+    <div class="rpt-body">
+      <div class="rpt-eyebrow">IMPULSA NETWORK SL · CORRECTIVE REPORT</div>
+      <div class="rpt-title">Service Report</div>
+      <div class="rpt-meta">
+        <span>${client} · ${store} · Ref. ${so}</span>
+        <span>${dateNice}</span>
+      </div>
+
+      <div class="rpt-h2">${secNum++}. Service Details</div>
+      <div class="rpt-h2-bar"></div>
+      <table class="rpt-table">
+        <tr><td class="lbl">Work order no.</td><td>${so}</td><td class="lbl">Service type</td><td>${svcType}</td></tr>
+        <tr><td class="lbl">Client</td><td>${client}</td><td class="lbl">Store</td><td>${store}</td></tr>
+        <tr><td class="lbl">Address</td><td colspan="3">${address}</td></tr>
+        <tr><td class="lbl">Date</td><td>${dateNice}</td><td class="lbl">Period</td><td>${start} – ${end}</td></tr>
+        <tr><td class="lbl">Technician</td><td>${tech}</td><td class="lbl">Store contact</td><td>${mgr}</td></tr>
+        <tr><td class="lbl">Executing company</td><td colspan="3">Impulsa Network, S.L. · VAT B01853274</td></tr>
+      </table>
+  `;
+
+  // Tasks section
+  if (tasks.length > 0) {
+    html += `<div class="rpt-h2">${secNum++}. Tasks Performed</div><div class="rpt-h2-bar"></div>`;
+    html += `<div class="rpt-task-header"><span><span class="chip">${dateNice}</span>&nbsp;&nbsp;TASK PERFORMED</span><span>STATUS</span></div>`;
+    tasks.forEach(t => {
+      html += `<div class="rpt-task-row"><span>▸ ${t}</span><span class="rpt-done">DONE ✓</span></div>`;
+    });
+    html += '<div style="margin-bottom:18px;"></div>';
+  }
+
+  // Description
+  html += `<div class="rpt-h2">${secNum++}. Work Performed</div><div class="rpt-h2-bar"></div>`;
+  html += `<div class="rpt-desc">${desc.replace(/\n/g, '<br>')}</div>`;
+
+  // Photos
+  if (photos.length > 0) {
+    html += `<div class="rpt-h2">${secNum++}. Photographic Evidence</div><div class="rpt-h2-bar"></div>`;
+    html += '<div class="rpt-photo-grid">';
+    photos.forEach(p => {
+      html += `<div class="rpt-photo-card"><img src="${p.data}" alt="">`;
+      if (p.caption) html += `<div class="rpt-photo-caption">${p.caption}</div>`;
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Observations
+  html += `<div class="rpt-h2">${secNum++}. Observations and Closing</div><div class="rpt-h2-bar"></div>`;
+  html += `<div class="rpt-obs rpt-obs-green"><strong>Final status:</strong> Works completed. Equipment operational.</div>`;
+
+  // Signatures
+  html += `<div class="rpt-h2">${secNum++}. Signatures</div><div class="rpt-h2-bar"></div>`;
+  html += '<div class="rpt-sig-grid">';
+  html += `<div class="rpt-sig-box"><div class="rpt-sig-img">${techSig ? `<img src="${techSig}">` : '<span style="color:#ccc;font-size:11px;">No signature</span>'}</div><div class="rpt-sig-name">${tech}</div><div class="rpt-sig-role">Technician</div></div>`;
+  html += `<div class="rpt-sig-box"><div class="rpt-sig-img">${mgrSig ? `<img src="${mgrSig}">` : '<span style="color:#ccc;font-size:11px;">No signature</span>'}</div><div class="rpt-sig-name">${mgr}</div><div class="rpt-sig-role">Store Manager</div></div>`;
+  html += '</div>';
+
+  // Footer
+  html += '<div class="rpt-footer">Impulsa Network, S.L. · VAT: B01853274 · www.impulsa-eu.com · External / client use</div>';
+  html += '</div>';
+
+  return html;
+}
+
+// ── GENERATE PDF ──
+async function generatePDF() {
+  if (!validate()) return;
+
+  const btn = document.getElementById('generateBtn');
+  const overlay = document.getElementById('loadingOverlay');
+  btn.disabled = true;
+  overlay.classList.add('active');
+
+  // Small delay to let overlay render
+  await new Promise(r => setTimeout(r, 100));
+
+  try {
+    const report = document.getElementById('report');
+    report.innerHTML = buildReport();
+
+    // Move into view temporarily for html2pdf
+    const container = document.getElementById('reportContainer');
+    container.style.position = 'fixed';
+    container.style.left = '0';
+    container.style.top = '0';
+    container.style.zIndex = '-1';
+    container.style.opacity = '0';
+
+    const so = getVal('soNumber');
+    const client = getVal('client').replace(/\s+/g, '_');
+    const store = getVal('store').replace(/\s+/g, '_') || 'Store';
+    const filename = `CORR-${so}_${client}_${store}.pdf`;
+
+    const opt = {
+      margin: 0,
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.92 },
+      html2canvas: { scale: 2, useCORS: true, logging: false, width: 794 },  // A4 at 96dpi
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    };
+
+    await html2pdf().set(opt).from(report).save();
+
+    // Reset container position
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.opacity = '1';
+
+    // Show success
+    document.getElementById('successMsg').classList.add('active');
+    document.getElementById('successMsg').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  } catch (err) {
+    alert('Error al generar PDF: ' + err.message);
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    overlay.classList.remove('active');
+  }
+}
+
+// ── RESET ──
+function resetForm() {
+  if (!confirm('¿Borrar todos los datos del formulario?')) return;
+  ['soNumber','client','store','address','description','techName','managerName','startTime','endTime'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('dateField').value = new Date().toISOString().split('T')[0];
+  document.getElementById('serviceType').value = 'Corrective';
+  photos = []; renderPhotos();
+  tasks = []; renderTasks();
+  clearSig('Tech'); clearSig('Mgr');
+  document.getElementById('errorBox').style.display = 'none';
+  document.getElementById('successMsg').classList.remove('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
